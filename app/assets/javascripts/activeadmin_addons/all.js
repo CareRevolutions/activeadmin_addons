@@ -171,26 +171,26 @@
     };
   };
   $(initializer$9);
-  $(document).on("turbolinks:load turbo:load", initializer$9);
-  var initializer$8 = function() {
+  $(document).on("turbolinks:load custom:load", initializer$9);
+  var initializer$8 = function () {
     configureSelect2(document);
-    $(document).on("has_many_add:after", function(event, container) {
+    $(document).on("has_many_add:after", function (event, container) {
       configureSelect2(container);
     });
     function configureSelect2(container) {
       if (window.ActiveadminAddons.config.defaultSelect == "select2") {
-        $("select:not(.default-select)", container).each(function(i, el) {
+        $("select:not(.default-select)", container).each(function (i, el) {
           setupSelect2(el);
         });
       }
-      $("select.select2", container).each(function(i, el) {
+      $("select.select2", container).each(function (i, el) {
         setupSelect2(el);
       });
       function setupSelect2(select) {
         var selectConfig = {
           placeholder: "",
           width: "80%",
-          allowClear: true
+          allowClear: true,
         };
         function isFilter(path) {
           return $(select).closest(path).length > 0;
@@ -202,18 +202,20 @@
           selectConfig.width = "resolve";
         }
         $(select).select2(selectConfig);
-        $(select).on("select2:unselecting", function() {
-          $(this).data("unselecting", true);
-        }).on("select2:open", function() {
-          if ($(this).data("unselecting")) {
-            $(this).select2("close").removeData("unselecting");
-          }
-        });
+        $(select)
+          .on("select2:unselecting", function () {
+            $(this).data("unselecting", true);
+          })
+          .on("select2:open", function () {
+            if ($(this).data("unselecting")) {
+              $(this).select2("close").removeData("unselecting");
+            }
+          });
       }
     }
   };
   $(initializer$8);
-  $(document).on("turbolinks:load turbo:load", initializer$8);
+  $(document).on("turbolinks:load custom:load", initializer$8);
   var initializer$7 = function() {
     setupSearchSelect(document);
     $(document).on("has_many_add:after", function(event, container) {
@@ -283,61 +285,65 @@
     }
   };
   $(initializer$7);
-  $(document).on("turbolinks:load turbo:load", initializer$7);
-  $.fn.select2.amd.define("select2/data/nestedCustomAdapter", [ "select2/data/array", "select2/utils" ], function(ArrayData, Utils) {
-    function CustomData($element, options) {
-      CustomData.__super__.constructor.call(this, $element, options);
-    }
-    Utils.Extend(CustomData, ArrayData);
-    CustomData.prototype.query = function(params, callback) {
-      var data = {
-        results: []
-      };
-      var element = this.$element;
-      var collection = element.data("collection");
-      var parent = element.data("parent");
-      var parentId = element.data("parent-id");
-      collection.forEach(function(record) {
-        var regex = new RegExp(params.term, "i");
-        var matched = !!record.text.match(regex);
-        if ((!parent || record[parent] == parentId) && matched) {
-          data.results.push(record);
-        }
-      });
-      callback(data);
-    };
-    CustomData.prototype.current = function(callback) {
-      var currentOption = null;
-      var element = this.$element;
-      var selectedOption = element.data("selected");
-      var collection = element.data("collection");
-      var data = [];
-      $.each(collection, function(index, option) {
-        if (!!selectedOption && option.id == selectedOption.id) {
-          currentOption = option;
-          element.data("selected", null);
-          return;
-        }
-        if (element.val() == option.id) {
-          currentOption = option;
-          return;
-        }
-      });
-      if (currentOption) {
-        data.push(currentOption);
+  $(document).on("turbolinks:load custom:load", initializer$7);
+  $.fn.select2.amd.define(
+    "select2/data/nestedCustomAdapter",
+    ["select2/data/array", "select2/utils"],
+    function (ArrayData, Utils) {
+      function CustomData($element, options) {
+        CustomData.__super__.constructor.call(this, $element, options);
       }
-      callback(data);
-    };
-    return CustomData;
-  });
-  var initializer$6 = function() {
+      Utils.Extend(CustomData, ArrayData);
+      CustomData.prototype.query = function (params, callback) {
+        var data = {
+          results: [],
+        };
+        var element = this.$element;
+        var collection = element.data("collection");
+        var parent = element.data("parent");
+        var parentId = element.data("parent-id");
+        collection.forEach(function (record) {
+          var regex = new RegExp(params.term, "i");
+          var matched = !!record.text.match(regex);
+          if ((!parent || record[parent] == parentId) && matched) {
+            data.results.push(record);
+          }
+        });
+        callback(data);
+      };
+      CustomData.prototype.current = function (callback) {
+        var currentOption = null;
+        var element = this.$element;
+        var selectedOption = element.data("selected");
+        var collection = element.data("collection");
+        var data = [];
+        $.each(collection, function (index, option) {
+          if (!!selectedOption && option.id == selectedOption.id) {
+            currentOption = option;
+            element.data("selected", null);
+            return;
+          }
+          if (element.val() == option.id) {
+            currentOption = option;
+            return;
+          }
+        });
+        if (currentOption) {
+          data.push(currentOption);
+        }
+        callback(data);
+      };
+      return CustomData;
+    }
+  );
+  var initializer$6 = function () {
     configureSelect2(document);
-    $(document).on("has_many_add:after", function(event, container) {
+    $(document).on("has_many_add:after", function (event, container) {
       configureSelect2(container);
     });
     function configureSelect2(container) {
       var INVALID_PARENT_ID = -1;
-      $(".nested-level-input", container).each(function(i, el) {
+      $(".nested-level-input", container).each(function (i, el) {
         var element = $(el);
         var url = element.data("url");
         var fields = element.data("fields");
@@ -357,21 +363,23 @@
           width: width,
           minimumInputLength: minimumInputLength,
           placeholder: "",
-          allowClear: true
+          allowClear: true,
         };
         if (collection) {
-          select2Config.dataAdapter = $.fn.select2.amd.require("select2/data/nestedCustomAdapter");
+          select2Config.dataAdapter = $.fn.select2.amd.require(
+            "select2/data/nestedCustomAdapter"
+          );
         } else {
           var ajaxConfig = {
             url: url,
             dataType: "json",
             delay: 250,
             cache: true,
-            data: function(params) {
+            data: function (params) {
               var textQuery = {
-                m: "or"
+                m: "or",
               };
-              fields.forEach(function(field) {
+              fields.forEach(function (field) {
                 if (field == "id") {
                   textQuery[field + "_eq"] = params.term;
                 } else {
@@ -381,9 +389,9 @@
               var query = {
                 order: order,
                 q: {
-                  groupings: [ textQuery ],
-                  combinator: "and"
-                }
+                  groupings: [textQuery],
+                  combinator: "and",
+                },
               };
               if (!!parent) {
                 query.q[parent + "_eq"] = parentId;
@@ -391,29 +399,31 @@
               Object.assign(query.q, filters);
               return query;
             },
-            processResults: function(data) {
+            processResults: function (data) {
               if (data.constructor == Object) {
                 data = data[responseRoot];
               }
               return {
-                results: jQuery.map(data, function(resource) {
+                results: jQuery.map(data, function (resource) {
                   if (!resource[displayName]) {
-                    resource[displayName] = "No display name for id #" + resource.id.toString();
+                    resource[displayName] =
+                      "No display name for id #" + resource.id.toString();
                   }
                   return {
                     id: resource.id,
-                    text: resource[displayName].toString()
+                    text: resource[displayName].toString(),
                   };
-                })
+                }),
               };
-            }
+            },
           };
           select2Config.ajax = ajaxConfig;
         }
         selectInstance = element.select2(select2Config);
         function setParentValue(e) {
           selectInstance.val(null).trigger("select2:select").trigger("change");
-          parentId = e.params && e.params.data.id ? e.params.data.id : INVALID_PARENT_ID;
+          parentId =
+            e.params && e.params.data.id ? e.params.data.id : INVALID_PARENT_ID;
           element.data("parent-id", parentId);
         }
         if (!!parent) {
@@ -429,7 +439,7 @@
     }
   };
   $(initializer$6);
-  $(document).on("turbolinks:load turbo:load", initializer$6);
+  $(document).on("turbolinks:load custom:load", initializer$6);
   var initializer$5 = function() {
     setupTags(document);
     $(document).on("has_many_add:after", function(event, container) {
@@ -495,20 +505,20 @@
     }
   };
   $(initializer$5);
-  $(document).on("turbolinks:load turbo:load", initializer$5);
-  var initializer$4 = function() {
+  $(document).on("turbolinks:load custom:load", initializer$5);
+  var initializer$4 = function () {
     setupSelectedList(document);
-    $(document).on("has_many_add:after", function(event, container) {
+    $(document).on("has_many_add:after", function (event, container) {
       setupSelectedList(container);
     });
     function setupSelectedList(container) {
-      $(".selected-list-container").click(function(event) {
+      $(".selected-list-container").click(function (event) {
         var item = $(event.target);
         if (item.hasClass("selected-item")) {
           item.remove();
         }
       });
-      $(".selected-list-input", container).each(function(i, el) {
+      $(".selected-list-input", container).each(function (i, el) {
         var element = $(el);
         var url = element.data("url");
         var fields = element.data("fields");
@@ -528,43 +538,45 @@
             dataType: "json",
             delay: 250,
             cache: true,
-            data: function(params) {
+            data: function (params) {
               var textQuery = {
-                m: "or"
+                m: "or",
               };
-              fields.forEach(function(field) {
+              fields.forEach(function (field) {
                 textQuery[field + "_" + predicate] = params.term;
               });
               var query = {
                 order: order,
                 q: {
-                  groupings: [ textQuery ],
-                  combinator: "and"
-                }
+                  groupings: [textQuery],
+                  combinator: "and",
+                },
               };
               return query;
             },
-            processResults: function(data) {
+            processResults: function (data) {
               if (data.constructor == Object) {
                 data = data[responseRoot];
               }
               return {
-                results: jQuery.map(data, function(resource) {
+                results: jQuery.map(data, function (resource) {
                   return {
                     id: resource.id,
-                    text: resource[displayName].toString()
+                    text: resource[displayName].toString(),
                   };
-                })
+                }),
               };
-            }
-          }
+            },
+          },
         };
         $(el).on("select2:select", onItemSelected);
         $(el).on("select2:close", onSelectClosed);
         $(el).select2(selectOptions);
         function onItemSelected(event) {
           var data = event.params.data;
-          var selectedItemsContainer = $("[id='" + prefix + "_selected_values']");
+          var selectedItemsContainer = $(
+            "[id='" + prefix + "_selected_values']"
+          );
           var itemName = model + "[" + method + "][]";
           var itemId = prefix + "_" + data.id;
           if ($("#" + itemId).length > 0) {
@@ -572,12 +584,12 @@
           }
           var item = $("<div>" + data.text + "</div>").attr({
             class: "selected-item",
-            id: itemId
+            id: itemId,
           });
           var hiddenInput = $("<input>").attr({
             name: itemName,
             type: "hidden",
-            value: data.id
+            value: data.id,
           });
           item.appendTo(selectedItemsContainer);
           hiddenInput.appendTo(item);
@@ -589,7 +601,7 @@
     }
   };
   $(initializer$4);
-  $(document).on("turbolinks:load turbo:load", initializer$4);
+  $(document).on("turbolinks:load custom:load", initializer$4);
   var initializer$3 = function() {
     setupDateTimePicker(document);
     $(document).on("has_many_add:after", ".has_many_container", function(event, fieldset) {
@@ -613,20 +625,20 @@
     }
   };
   $(initializer$3);
-  $(document).on("turbolinks:load turbo:load", initializer$3);
-  var initializer$2 = function() {
+  $(document).on("turbolinks:load custom:load", initializer$3);
+  var initializer$2 = function () {
     setupColorPicker();
     $(document).on("has_many_add:after", setupColorPicker);
     function setupColorPicker() {
-      $(".color-picker-input").each(function(i, el) {
+      $(".color-picker-input").each(function (i, el) {
         $(el).paletteColorPicker({
-          clear_btn: "last"
+          clear_btn: "last",
         });
       });
     }
   };
   $(initializer$2);
-  $(document).on("turbolinks:load turbo:load", initializer$2);
+  $(document).on("turbolinks:load custom:load", initializer$2);
   var initializer$1 = function() {
     $(".toggle-bool-switch").click(function(e) {
       var boolSwitch = $(e.target);
@@ -665,33 +677,35 @@
     });
   };
   $(initializer$1);
-  $(document).on("turbolinks:load turbo:load", initializer$1);
-  var initializer = function() {
+  $(document).on("turbolinks:load custom:load", initializer$1);
+  var initializer = function () {
     configureInteractiveSelect(document);
-    $(document).on("has_many_add:after", function(event, container) {
+    $(document).on("has_many_add:after", function (event, container) {
       configureInteractiveSelect(container);
     });
     function configureInteractiveSelect(container) {
-      $(".interactive-tag-select select", container).each(function(i, el) {
+      $(".interactive-tag-select select", container).each(function (i, el) {
         setupSelect2(el);
       });
       function setupSelect2(select) {
         var selectConfig = {
           placeholder: "",
           allowClear: false,
-          width: "125px"
+          width: "125px",
         };
         $(select).select2(selectConfig);
-        $(select).on("select2:unselecting", function() {
-          $(this).data("unselecting", true);
-        }).on("select2:open", function() {
-          if ($(this).data("unselecting")) {
-            $(this).select2("close").removeData("unselecting");
-          }
-        });
+        $(select)
+          .on("select2:unselecting", function () {
+            $(this).data("unselecting", true);
+          })
+          .on("select2:open", function () {
+            if ($(this).data("unselecting")) {
+              $(this).select2("close").removeData("unselecting");
+            }
+          });
       }
     }
-    $(".interactive-tag").click(function(e) {
+    $(".interactive-tag").click(function (e) {
       var tag = $(e.target).parent();
       var model = tag.data("model");
       var objectId = tag.data("object_id");
@@ -701,7 +715,7 @@
       tag.addClass("interactive-tag-hidden");
       selectTag.find("select").select2("open");
     });
-    $(".interactive-tag-select").on("select2:close", function(e) {
+    $(".interactive-tag-select").on("select2:close", function (e) {
       var selectTag = $(e.target).parent();
       var model = selectTag.data("model");
       var objectId = selectTag.data("object_id");
@@ -717,7 +731,7 @@
       } else {
         var url = tagContainer.data("url");
         var data = {
-          id: objectId
+          id: objectId,
         };
         data[model] = {};
         data[model][field] = newValue;
@@ -726,28 +740,28 @@
           data: data,
           dataType: "json",
           headers: {
-            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content")
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
           },
-          error: function() {
+          error: function () {
             var errorMsg = "Error: Update Unsuccessful";
             console.log(errorMsg);
           },
-          success: function() {
+          success: function () {
             statusTag.text(newText);
             statusTag.removeClass(oldValue);
             statusTag.addClass(newValue);
             tagContainer.data("value", newValue);
             selectTag.data("value", newValue);
           },
-          complete: function() {
+          complete: function () {
             selectTag.addClass("select-container-hidden");
             tagContainer.removeClass("interactive-tag-hidden");
           },
-          type: "PATCH"
+          type: "PATCH",
         });
       }
     });
   };
   $(initializer);
-  $(document).on("turbolinks:load turbo:load", initializer);
+  $(document).on("turbolinks:load custom:load", initializer);
 });
