@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionCalls>
+        <description>Convert the lead</description>
+        <name>Convert_the_Lead</name>
+        <label>Convert the Lead</label>
+        <locationX>1098</locationX>
+        <locationY>809</locationY>
+        <actionName>LeadConvert</actionName>
+        <actionType>apex</actionType>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>LeadIds</name>
+            <value>
+                <elementReference>$Record.Id</elementReference>
+            </value>
+        </inputParameters>
+    </actionCalls>
+    <actionCalls>
+        <description>The lead has an external pro ID but no contact was found.</description>
+        <name>Lead_with_External_Pro_ID_No_Contact_Found</name>
+        <label>Lead with External Pro ID No Contact Found</label>
+        <locationX>959</locationX>
+        <locationY>546</locationY>
+        <actionName>FlowLogEntry</actionName>
+        <actionType>apex</actionType>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>recordId</name>
+            <value>
+                <elementReference>$Record.Id</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>saveLog</name>
+            <value>
+                <booleanValue>true</booleanValue>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>flowName</name>
+            <value>
+                <stringValue>Lead Professional Lead Auto Conversion</stringValue>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>message</name>
+            <value>
+                <stringValue>The lead has an external pro ID but no contact was found. </stringValue>
+            </value>
+        </inputParameters>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </actionCalls>
+    <apiVersion>55.0</apiVersion>
+    <decisions>
+        <description>Is the lead new?</description>
+        <name>New</name>
+        <label>New</label>
+        <locationX>1090</locationX>
+        <locationY>326</locationY>
+        <defaultConnectorLabel>Default Outcome</defaultConnectorLabel>
+        <rules>
+            <name>Is_New_or_Pro_ID_added</name>
+            <conditionLogic>or</conditionLogic>
+            <conditions>
+                <leftValueReference>formulaIsNew</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <booleanValue>true</booleanValue>
+                </rightValue>
+            </conditions>
+            <conditions>
+                <leftValueReference>$Record.External_Lead_ID__c</leftValueReference>
+                <operator>IsChanged</operator>
+                <rightValue>
+                    <booleanValue>true</booleanValue>
+                </rightValue>
+            </conditions>
+            <conditions>
+                <leftValueReference>$Record.External_Professional_ID__c</leftValueReference>
+                <operator>IsChanged</operator>
+                <rightValue>
+                    <booleanValue>true</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Get_Contact</targetReference>
+            </connector>
+            <label>Is New or Pro ID added</label>
+        </rules>
+    </decisions>
+    <decisions>
+        <description>Check whether the lead is owned by a queue or inactive user and then change the owner to the Service Account since contacts can only be owned by a user.</description>
+        <name>Owned_by_Queue_or_Inactive_User</name>
+        <label>Owned by Queue or Inactive User</label>
+        <locationX>1095</locationX>
+        <locationY>642</locationY>
+        <defaultConnectorLabel>Default Outcome</defaultConnectorLabel>
+        <rules>
+            <name>Contact_Not_Found</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>Get_Contact</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>true</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Lead_with_External_Pro_ID_No_Contact_Found</targetReference>
+            </connector>
+            <label>Contact Not Found</label>
+        </rules>
+        <rules>
+            <name>Queue_or_Inactive</name>
+            <conditionLogic>(1 OR 2) AND 3</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.Owner:User.IsActive</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <conditions>
+                <leftValueReference>formulaQueueOwner</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <booleanValue>true</booleanValue>
+                </rightValue>
+            </conditions>
+            <conditions>
+                <leftValueReference>$Record.Status</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <stringValue>Qualified</stringValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Get_Service_User_Profile_ID</targetReference>
+            </connector>
+            <label>Queue or Inactive</label>
+        </rules>
+        <rules>
+            <name>Not_Owned_by_Queue</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.Owner:User.IsActive</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <booleanValue>true</booleanValue>
+                </rightValue>
+            </conditions>
+            <conditions>
+                <leftValueReference>formulaQueueOwner</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <conditions>
+                <leftValueReference>$Record.Status</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <stringValue>Qualified</stringValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Convert_the_Lead</targetReference>
+            </connector>
+            <label>Not Owned by Queue</label>
+        </rules>
+    </decisions>
+    <description>Invoke the LeadConvert apex class when a professional lead is marked as Qualified status</description>
+    <environments>Default</environments>
+    <formulas>
+        <description>Formula to test if the record is new</description>
+        <name>formulaIsNew</name>
+        <dataType>Boolean</dataType>
+        <expression>isnew()</expression>
+    </formulas>
+    <formulas>
+        <description>Is the lead owned by a queue formula</description>
+        <name>formulaQueueOwner</name>
+        <dataType>Boolean</dataType>
+        <expression>BEGINS({!$Record.OwnerId}, &quot;00G&quot;)</expression>
+    </formulas>
+    <interviewLabel>Lead Professional Lead Auto Conversion {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Lead Professional Lead Auto Conversion</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value>
+            <stringValue>FREE_FORM_CANVAS</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <recordLookups>
+        <description>Get the related Contact</description>
+        <name>Get_Contact</name>
+        <label>Get Contact</label>
+        <locationX>1101</locationX>
+        <locationY>510</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Owned_by_Queue_or_Inactive_User</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>External_Professional_ID__c</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>$Record.External_Professional_ID__c</elementReference>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>Contact</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordLookups>
+        <description>Get the user id of the service account</description>
+        <name>Get_Service_User_Profile_ID</name>
+        <label>Get Service User ID</label>
+        <locationX>961</locationX>
+        <locationY>697</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Update_Lead_Owner</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Name</field>
+            <operator>EqualTo</operator>
+            <value>
+                <stringValue>Service Account</stringValue>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>User</object>
+        <queriedFields>Id</queriedFields>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordUpdates>
+        <description>If the owner is a queue or inactive update to service account</description>
+        <name>Update_Lead_Owner</name>
+        <label>Update Lead Owner</label>
+        <locationX>962</locationX>
+        <locationY>809</locationY>
+        <connector>
+            <targetReference>Convert_the_Lead</targetReference>
+        </connector>
+        <inputAssignments>
+            <field>OwnerId</field>
+            <value>
+                <elementReference>Get_Service_User_Profile_ID.Id</elementReference>
+            </value>
+        </inputAssignments>
+        <inputReference>$Record</inputReference>
+    </recordUpdates>
+    <start>
+        <locationX>968</locationX>
+        <locationY>11</locationY>
+        <connector>
+            <targetReference>New</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>External_Lead_ID__c</field>
+            <operator>IsNull</operator>
+            <value>
+                <booleanValue>false</booleanValue>
+            </value>
+        </filters>
+        <filters>
+            <field>IsConverted</field>
+            <operator>EqualTo</operator>
+            <value>
+                <booleanValue>false</booleanValue>
+            </value>
+        </filters>
+        <filters>
+            <field>External_Professional_ID__c</field>
+            <operator>IsNull</operator>
+            <value>
+                <booleanValue>false</booleanValue>
+            </value>
+        </filters>
+        <object>Lead</object>
+        <recordTriggerType>CreateAndUpdate</recordTriggerType>
+        <triggerType>RecordAfterSave</triggerType>
+    </start>
+    <status>Active</status>
+</Flow>
