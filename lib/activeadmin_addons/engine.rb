@@ -1,8 +1,8 @@
 module ActiveAdminAddons
   module Rails
     class Engine < ::Rails::Engine
-      require 'sassc'
-      require 'sassc-rails'
+      # No Sass engine is required here: the host app picks one (CareRev tools_app uses
+      # dartsass-sprockets) and Sprockets compiles the .scss assets with it.
       require "xdan-datetimepicker-rails"
       require "require_all"
       require "active_material"

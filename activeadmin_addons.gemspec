@@ -21,8 +21,6 @@ Gem::Specification.new do |s|
   s.add_dependency "active_material"
   s.add_dependency "railties"
   s.add_dependency "require_all"
-  s.add_dependency "sassc"
-  s.add_dependency "sassc-rails"
   s.add_dependency "xdan-datetimepicker-rails", "~> 2.5.1"
 
   s.add_development_dependency "aasm"
@@ -38,6 +36,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "puma"
   s.add_development_dependency "rails", "~> 5.2", ">= 5.2.4.1"
   s.add_development_dependency "rspec-rails"
+  s.add_development_dependency "sassc-rails" # the dummy app's Sass engine; hosts choose their own
   s.add_development_dependency "rspec_junit_formatter"
   s.add_development_dependency "rubocop", "~> 0.65.0"
   s.add_development_dependency "shoulda-matchers"
